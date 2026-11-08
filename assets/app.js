@@ -123,8 +123,8 @@ const loadStats = async () => {
 
 loadStats();
 const REVIEWS = {
-  url: '',
-  key: ''
+  url: 'https://elidsirqxlvehsazhvfc.supabase.co',
+  key: 'sb_publishable_EvMzxjNXEXlpP15S5jRgzA_yjDJotkO'
 };
 
 const reviewsSection = document.getElementById('reviews');
