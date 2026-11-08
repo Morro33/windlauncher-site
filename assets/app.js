@@ -72,6 +72,7 @@ const plural = (n, one, few, many) => {
 const statsCache = 'wl.releaseStats';
 
 const renderStats = (stats) => {
+  if (!stats.downloads) return;
   const number = new Intl.NumberFormat('ru-RU').format(stats.downloads);
   const hero = document.querySelector('[data-downloads]');
   if (hero) {
