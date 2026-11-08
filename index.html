@@ -28,6 +28,7 @@
         <a href="#features">Возможности</a>
         <a href="#screens">Скриншоты</a>
         <a href="#download">Скачать</a>
+        <a href="#reviews">Отзывы</a>
         <a href="#faq">Вопросы</a>
       </nav>
       <a class="btn btn-primary btn-sm nav-download" href="https://github.com/Morro33/windlauncher-site/releases/latest/download/WindLauncher.exe" download>
@@ -201,6 +202,44 @@
             <li><span>3</span><div><strong>Добавьте аккаунт</strong><p>Microsoft или офлайн-профиль.</p></div></li>
             <li><span>4</span><div><strong>Играйте</strong><p>Выберите сборку и нажмите «Играть».</p></div></li>
           </ol>
+        </div>
+      </section>
+
+      <section class="section" id="reviews" hidden>
+        <div class="section-head reveal">
+          <span class="eyebrow">Отзывы</span>
+          <h2>Что говорят игроки.</h2>
+          <p class="reviews-summary" data-reviews-summary hidden></p>
+        </div>
+
+        <div class="reviews">
+          <form class="review-form reveal" data-review-form novalidate>
+            <div class="field">
+              <label for="review-name">Имя или ник</label>
+              <input id="review-name" name="name" type="text" maxlength="40" autocomplete="nickname" placeholder="Steve" required />
+            </div>
+            <div class="field">
+              <span class="field-label">Оценка</span>
+              <div class="stars" role="radiogroup" aria-label="Оценка от 1 до 5">
+                <input type="radio" id="star-5" name="rating" value="5" required /><label for="star-5" title="5 из 5">★</label>
+                <input type="radio" id="star-4" name="rating" value="4" /><label for="star-4" title="4 из 5">★</label>
+                <input type="radio" id="star-3" name="rating" value="3" /><label for="star-3" title="3 из 5">★</label>
+                <input type="radio" id="star-2" name="rating" value="2" /><label for="star-2" title="2 из 5">★</label>
+                <input type="radio" id="star-1" name="rating" value="1" /><label for="star-1" title="1 из 5">★</label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="review-body">Отзыв</label>
+              <textarea id="review-body" name="body" rows="4" maxlength="1200" placeholder="Что понравилось, что стоит улучшить" required></textarea>
+            </div>
+            <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <button class="btn btn-primary btn-wide" type="submit" data-review-submit>Отправить отзыв</button>
+            <p class="form-note" data-review-note role="status" aria-live="polite"></p>
+          </form>
+
+          <div class="reviews-list" data-reviews-list>
+            <p class="reviews-empty" data-reviews-empty hidden>Пока отзывов нет — станьте первым.</p>
+          </div>
         </div>
       </section>
 

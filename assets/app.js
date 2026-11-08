@@ -122,3 +122,176 @@ const loadStats = async () => {
 };
 
 loadStats();
+const REVIEWS = {
+  url: '',
+  key: ''
+};
+
+const reviewsSection = document.getElementById('reviews');
+const reviewForm = document.querySelector('[data-review-form]');
+const reviewsList = document.querySelector('[data-reviews-list]');
+const reviewsEmpty = document.querySelector('[data-reviews-empty]');
+const reviewsSummary = document.querySelector('[data-reviews-summary]');
+const reviewNote = document.querySelector('[data-review-note]');
+const reviewSubmit = document.querySelector('[data-review-submit]');
+
+const starsText = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+const shortDate = (value) => {
+  try {
+    return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' }).format(new Date(value));
+  } catch {
+    return '';
+  }
+};
+
+const buildReview = (review) => {
+  const card = document.createElement('article');
+  card.className = 'review';
+
+  const header = document.createElement('header');
+  const name = document.createElement('strong');
+  name.textContent = review.name;
+
+  const stars = document.createElement('span');
+  stars.className = 'review-stars';
+  stars.textContent = starsText(review.rating);
+
+  const time = document.createElement('time');
+  time.dateTime = review.created_at;
+  time.textContent = shortDate(review.created_at);
+
+  header.append(name, stars, time);
+
+  const body = document.createElement('p');
+  body.textContent = review.body;
+
+  card.append(header, body);
+  return card;
+};
+
+const renderSummary = (reviews) => {
+  if (!reviewsSummary) return;
+  if (!reviews.length) {
+    reviewsSummary.hidden = true;
+    return;
+  }
+  const average = reviews.reduce((sum, item) => sum + Number(item.rating), 0) / reviews.length;
+  const rounded = Math.round(average);
+  const text = average.toFixed(1).replace('.', ',');
+
+  reviewsSummary.innerHTML = '';
+  const stars = document.createElement('span');
+  stars.className = 'summary-stars';
+  stars.textContent = starsText(rounded);
+  const strong = document.createElement('strong');
+  strong.textContent = text;
+  const count = plural(reviews.length, 'отзыв', 'отзыва', 'отзывов');
+  reviewsSummary.append(stars, strong, ` · ${reviews.length} ${count}`);
+  reviewsSummary.hidden = false;
+};
+
+const renderReviews = (reviews) => {
+  if (!reviewsList) return;
+  reviewsList.querySelectorAll('.review').forEach((node) => node.remove());
+  for (const review of reviews) reviewsList.append(buildReview(review));
+  if (reviewsEmpty) reviewsEmpty.hidden = reviews.length > 0;
+  renderSummary(reviews);
+};
+
+const setNote = (text, state) => {
+  if (!reviewNote) return;
+  reviewNote.textContent = text;
+  if (state) reviewNote.dataset.state = state;
+  else delete reviewNote.dataset.state;
+};
+
+const loadReviews = async () => {
+  const response = await fetch(
+    `${REVIEWS.url}/rest/v1/reviews?select=id,created_at,name,rating,body&hidden=eq.false&order=created_at.desc&limit=60`,
+    { headers: { apikey: REVIEWS.key, authorization: `Bearer ${REVIEWS.key}` } }
+  );
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+};
+
+const initReviews = async () => {
+  reviewsSection.hidden = false;
+  try {
+    renderReviews(await loadReviews());
+  } catch {
+    if (reviewsEmpty) {
+      reviewsEmpty.textContent = 'Не удалось загрузить отзывы. Обновите страницу позже.';
+      reviewsEmpty.hidden = false;
+    }
+  }
+};
+
+if (reviewForm) {
+  reviewForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!reviewSubmit) return;
+
+    const data = new FormData(reviewForm);
+    const name = String(data.get('name') || '').trim();
+    const body = String(data.get('body') || '').trim();
+    const rating = Number(data.get('rating'));
+    const trap = String(data.get('website') || '');
+
+    if (trap) {
+      reviewForm.reset();
+      setNote('Спасибо! Отзыв опубликован.', 'ok');
+      return;
+    }
+
+    if (name.length < 2 || name.length > 40) {
+      setNote('Имя — от 2 до 40 символов.', 'error');
+      return;
+    }
+    if (!rating || rating < 1 || rating > 5) {
+      setNote('Поставьте оценку от 1 до 5.', 'error');
+      return;
+    }
+    if (body.length < 10 || body.length > 1200) {
+      setNote('Отзыв — от 10 до 1200 символов.', 'error');
+      return;
+    }
+
+    const last = Number(localStorage.getItem('wl.reviewAt') || 0);
+    if (Date.now() - last < 60000) {
+      setNote('Вы уже отправляли отзыв только что. Подождите минуту.', 'error');
+      return;
+    }
+
+    reviewSubmit.disabled = true;
+    setNote('Отправляем…');
+
+    try {
+      const response = await fetch(`${REVIEWS.url}/rest/v1/reviews`, {
+        method: 'POST',
+        headers: {
+          apikey: REVIEWS.key,
+          authorization: `Bearer ${REVIEWS.key}`,
+          'content-type': 'application/json',
+          prefer: 'return=representation'
+        },
+        body: JSON.stringify({ name, rating, body })
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      reviewForm.reset();
+      localStorage.setItem('wl.reviewAt', String(Date.now()));
+      setNote('Спасибо! Отзыв опубликован.', 'ok');
+      await loadReviews().then(renderReviews).catch(() => {});
+    } catch {
+      setNote('Не удалось отправить. Попробуйте ещё раз.', 'error');
+    } finally {
+      reviewSubmit.disabled = false;
+    }
+  });
+}
+
+if (REVIEWS.url && REVIEWS.key && reviewsSection) {
+  initReviews();
+}
