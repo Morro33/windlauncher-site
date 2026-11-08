@@ -787,3 +787,15 @@ code {
     transform: none;
   }
 }
+
+/* Downloads counter */
+.dl-note {
+  margin: 14px 0 0;
+  color: var(--muted-2);
+  font-size: 12px;
+}
+
+.dl-note strong {
+  color: var(--text-2);
+  font-weight: 600;
+}
